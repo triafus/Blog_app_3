@@ -1,55 +1,83 @@
-import { useState } from "react";
-import { MessageSquare } from "lucide-react";
-import CommentForm from "./CommentForm";
-import CommentList from "./CommentList";
+import { useState, useEffect } from 'react';
+import { MessageSquare } from 'lucide-react';
+import API from '../api/axios';
+import CommentForm from './CommentForm';
+import CommentList from './CommentList';
 
 const CommentSection = ({ articleId }) => {
-  // État des commentaires (initialisé vide en l'attente des appels API réels)
   const [comments, setComments] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Préparation du chargement : GET /api/comments/article/:id
-  // useEffect(() => { ... }, [articleId]);
-
-  const handleCommentCreated = (newCommentData) => {
-    // Logique d'ajout local ou rechargement suite au POST /api/comments
+  const fetchComments = async () => {
+    try {
+      setLoading(true);
+      const { data } = await API.get(`/comments/article/${articleId}`);
+      setComments(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleCommentUpdated = (commentId, updatedContent) => {
-    // Logique de mise à jour locale ou rechargement suite au PUT /api/comments/:id
+  useEffect(() => {
+    if (articleId) {
+      fetchComments();
+    }
+  }, [articleId]);
+
+  const handleCommentCreated = async (content) => {
+    try {
+      await API.post('/comments', { article_id: articleId, content });
+      await fetchComments();
+    } catch (err) {
+      console.error(err);
+    }
   };
 
-  const handleCommentDeleted = (commentId) => {
-    // Logique de suppression locale ou rechargement suite au DELETE /api/comments/:id
+  const handleCommentUpdated = async (commentId, content) => {
+    try {
+      await API.put(`/comments/${commentId}`, { content });
+      await fetchComments();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleCommentDeleted = async (commentId) => {
+    if (window.confirm('Voulez-vous vraiment supprimer ce commentaire ?')) {
+      try {
+        await API.delete(`/comments/${commentId}`);
+        await fetchComments();
+      } catch (err) {
+        console.error(err);
+      }
+    }
   };
 
   return (
-    <section
-      style={{
-        marginTop: "50px",
-        borderTop: "1px solid var(--border)",
-        paddingTop: "30px",
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "10px",
-          marginBottom: "25px",
-        }}
-      >
+    <section style={{ marginTop: '50px', borderTop: '1px solid var(--border)', paddingTop: '30px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '25px' }}>
         <MessageSquare size={24} color="var(--primary)" />
-        <h2 style={{ fontSize: "1.6rem" }}>Commentaires ({comments.length})</h2>
+        <h2 style={{ fontSize: '1.6rem' }}>Commentaires ({comments.length})</h2>
       </div>
+
       <CommentForm
         articleId={articleId}
         onCommentCreated={handleCommentCreated}
       />
-      <CommentList
-        comments={comments}
-        onCommentUpdated={handleCommentUpdated}
-        onCommentDeleted={handleCommentDeleted}
-      />
+
+      {loading ? (
+        <div style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '20px' }}>
+          Chargement des commentaires...
+        </div>
+      ) : (
+        <CommentList
+          comments={comments}
+          onCommentUpdated={handleCommentUpdated}
+          onCommentDeleted={handleCommentDeleted}
+        />
+      )}
     </section>
   );
 };
