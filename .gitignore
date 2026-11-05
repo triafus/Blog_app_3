@@ -1,0 +1,41 @@
+# Dépendances
+node_modules/
+*/node_modules/
+
+# Environnement et secrets
+.env
+.env.*
+!.env.example
+server/.env
+server/.env.*
+!server/.env.example
+
+# Builds de production
+dist/
+dist-ssr/
+client/dist/
+build/
+
+# Fichiers uploadés par les utilisateurs (images d'articles et avatars)
+server/uploads/*
+!server/uploads/.gitkeep
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Fichiers d'éditeurs & OS
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+Thumbs.db
+
